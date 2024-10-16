@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lab 4: Data Transformations</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Lab4_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Lab4_files/libs/quarto-html/quarto.js"></script>
+<script src="Lab4_files/libs/quarto-html/popper.min.js"></script>
+<script src="Lab4_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Lab4_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Lab4_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Lab4_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Lab4_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Lab4_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Lab4_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 4: Data Transformations</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\[','\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});
+</script>
+<script type="text/javascript" async="" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<section id="overview-large-technology-stocks" class="level2">
+<h2 class="anchored" data-anchor-id="overview-large-technology-stocks">Overview: Large Technology Stocks</h2>
+<p>For this assignment we practice data transformation using a dataset of the daily prices and daily trading volumes of a group of large technology stocks that trade on US stock exchanges. <a href="https://github.com/georgehagstrom/DATA607/tree/main/website/assignments/labs/labData/stocks.csv">Click here to download stocks.csv</a>, which contains data going back to 2000. The dataset contains several variables, including:</p>
+<ul>
+<li><code>symbol</code>: which is the ticker symbol for the stock</li>
+<li><code>date</code>: which is the trading date</li>
+<li><code>open</code>, <code>high</code>, <code>low</code>, and <code>close</code>, which are the price at the start of trading, the high price during the day, the low price during the day, and the stock price at the close of trading (unit is USD)</li>
+<li><code>adjusted</code>: which is the stock price at close adjusted for the financial effects of special events (such as dividends). Unit is USD</li>
+<li><code>volume</code>: which is the number of shares which traded during a given trading day.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(TTR)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">=</span> <span class="fu">read_csv</span>(<span class="st">"/Users/nanafrimpong/Desktop/SPS Fall 2024/Data &amp; Acq 607/Data 607 R File/Assignment 4/Lab 4/stocks.csv"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>stocks <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">|&gt;</span> <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 14%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">symbol</th>
+<th style="text-align: left;">date</th>
+<th style="text-align: right;">open</th>
+<th style="text-align: right;">high</th>
+<th style="text-align: right;">low</th>
+<th style="text-align: right;">close</th>
+<th style="text-align: right;">volume</th>
+<th style="text-align: right;">adjusted</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-03</td>
+<td style="text-align: right;">0.936384</td>
+<td style="text-align: right;">1.004464</td>
+<td style="text-align: right;">0.907924</td>
+<td style="text-align: right;">0.999442</td>
+<td style="text-align: right;">535796800</td>
+<td style="text-align: right;">0.8440041</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-04</td>
+<td style="text-align: right;">0.966518</td>
+<td style="text-align: right;">0.987723</td>
+<td style="text-align: right;">0.903460</td>
+<td style="text-align: right;">0.915179</td>
+<td style="text-align: right;">512377600</td>
+<td style="text-align: right;">0.7728457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-05</td>
+<td style="text-align: right;">0.926339</td>
+<td style="text-align: right;">0.987165</td>
+<td style="text-align: right;">0.919643</td>
+<td style="text-align: right;">0.928571</td>
+<td style="text-align: right;">778321600</td>
+<td style="text-align: right;">0.7841553</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-06</td>
+<td style="text-align: right;">0.947545</td>
+<td style="text-align: right;">0.955357</td>
+<td style="text-align: right;">0.848214</td>
+<td style="text-align: right;">0.848214</td>
+<td style="text-align: right;">767972800</td>
+<td style="text-align: right;">0.7162958</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-07</td>
+<td style="text-align: right;">0.861607</td>
+<td style="text-align: right;">0.901786</td>
+<td style="text-align: right;">0.852679</td>
+<td style="text-align: right;">0.888393</td>
+<td style="text-align: right;">460734400</td>
+<td style="text-align: right;">0.7502258</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-10</td>
+<td style="text-align: right;">0.910714</td>
+<td style="text-align: right;">0.912946</td>
+<td style="text-align: right;">0.845982</td>
+<td style="text-align: right;">0.872768</td>
+<td style="text-align: right;">505064000</td>
+<td style="text-align: right;">0.7370310</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-11</td>
+<td style="text-align: right;">0.856585</td>
+<td style="text-align: right;">0.887277</td>
+<td style="text-align: right;">0.808036</td>
+<td style="text-align: right;">0.828125</td>
+<td style="text-align: right;">441548800</td>
+<td style="text-align: right;">0.6993311</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-12</td>
+<td style="text-align: right;">0.848214</td>
+<td style="text-align: right;">0.852679</td>
+<td style="text-align: right;">0.772321</td>
+<td style="text-align: right;">0.778460</td>
+<td style="text-align: right;">976068800</td>
+<td style="text-align: right;">0.6573902</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-13</td>
+<td style="text-align: right;">0.843610</td>
+<td style="text-align: right;">0.881696</td>
+<td style="text-align: right;">0.825893</td>
+<td style="text-align: right;">0.863839</td>
+<td style="text-align: right;">1032684800</td>
+<td style="text-align: right;">0.7294905</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AAPL</td>
+<td style="text-align: left;">2000-01-14</td>
+<td style="text-align: right;">0.892857</td>
+<td style="text-align: right;">0.912946</td>
+<td style="text-align: right;">0.887277</td>
+<td style="text-align: right;">0.896763</td>
+<td style="text-align: right;">390376000</td>
+<td style="text-align: right;">0.7572942</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>All of the the stock prices and the trading volume have been adjusted for stock splits, so that the data provide a continuous record of how prices and trading volume changed.</p>
+<p>There are several important functions and packages that you will need to use to complete this exercise.</p>
+<ul>
+<li>We will make a lot of use of window functions in <code>dplyr</code>, which are very helpful for making transformations (including <code>lead</code>, <code>lag</code>, <code>percent_rank</code>). The <a href="https://dplyr.tidyverse.org/articles/window-functions.html"><code>dplyr</code> vignettes and articles are incredibly useful for learning about all the different functions available</a></li>
+<li>We will use the <code>TTR</code> package (which is part of the <code>tidyquant</code> family of packages, <a href="https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ02-quant-integrations-in-tidyquant.html">see here</a>). The main function we will use is called <code>runMean</code>. An alternative package that is also very nice but not part of the <code>tidyverse</code> is <a href="https://CRAN.R-project.org/package=RcppRoll"><code>RcppRoll</code></a></li>
+</ul>
+<pre class="{r-2}"><code>install.packages("tidyquant")</code></pre>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyquant)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Registered S3 method overwritten by 'quantmod':
+  method            from
+  as.zoo.data.frame zoo </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyquant packages ──────────────────────── tidyquant 1.0.9 ──
+✔ PerformanceAnalytics 2.0.4      ✔ xts                  0.14.0
+✔ quantmod             0.4.26     
+── Conflicts ────────────────────────────────────────── tidyquant_conflicts() ──
+✖ zoo::as.Date()                 masks base::as.Date()
+✖ zoo::as.Date.numeric()         masks base::as.Date.numeric()
+✖ dplyr::filter()                masks stats::filter()
+✖ xts::first()                   masks dplyr::first()
+✖ kableExtra::group_rows()       masks dplyr::group_rows()
+✖ dplyr::lag()                   masks stats::lag()
+✖ xts::last()                    masks dplyr::last()
+✖ PerformanceAnalytics::legend() masks graphics::legend()
+✖ quantmod::summary()            masks base::summary()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+</div>
+<ul>
+<li>If you aren’t very comfortable with logarithms, you should read more about them. They are one of the most important mathematical functions for data science. We aren’t using their mathematical properties much this week but they will be important throughout your data science journey. <a href="https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:logs/x2ec2f6f830c9fb89:log-intro/v/logarithms">Khan Academy has a decent video</a>, and <a href="https://www.nature.com/articles/news.2008.866">this article in the journal nature</a> has some more context.</li>
+<li>We will calculate some correlation coefficients, using the <code>cor</code> function from base R (<code>?cor</code> to see how it is used). There is also a <code>tidyverse</code> package called <code>corrr</code> that is useful for calculating correlations on data frames, but we won’t use it for this lab.</li>
+<li>The motivation for today’s assignment came from some news articles a few years ago about how big tech stocks collectively had a miniature meltdown after powering the stock market for several consecutive years, see <a href="https://www.morningstar.com/markets/5-charts-big-tech-stocks-collapse">this article at Morningstar</a></li>
+<li>The <a href="https://en.wikipedia.org/wiki/Market_impact">wikipedia page on Market Impact</a> has some references to Kyle’s <span class="math inline">\(\lambda\)</span>, which we will calculate this week.</li>
+</ul>
+<p><strong>Problem 1:</strong> The price of a stock on a given day only conveys information in relation to the stock price on other days. One useful measure is the daily <code>return</code> of the stock, which we will define as the ratio of the adjusted closing price on the current day of trading to the adjusted closing price on the previous day of trading. Read the following article on <em>window functions</em> in <code>dplyr</code>: <a href="https://dplyr.tidyverse.org/articles/window-functions.html">window functions in dplyr</a>.</p>
+<ul>
+<li>Find a function there that will help you calculate the daily return and use it along with mutate to add a <code>return</code> column to the data frame containing the daily return.</li>
+</ul>
+<p>Hint: make sure to use group_by(symbol), otherwise your calculation might transpose prices from a different stock at the beginning of each time series.</p>
+<p>Differences between the adjusted return and the return measured on the close price should indicate special corporate events such as dividends.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">return =</span> adjusted <span class="sc">/</span> <span class="fu">lag</span>(close) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Calculate the un-adjusted return using the same technique you used to calculate the return, but replacing the <code>adjusted</code> variable with the <code>close</code> variable, and find the datapoint in the dataset where the return exceeded the unadjusted return by the greatest margin. (Hint to check you have done it right: it happened in November 2004). The reason that the <code>close</code> price and the <code>adjusted</code> price differ is because stock prices typically decrease when a dividend is paid (to account for the cash paid out). The <code>adjusted</code> value has been modified from the beginning of the initial data record to increase <code>adjusted</code> to compensate for dividends. A dividend is just a payment that a company makes periodically to those who hold stock.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">return2 =</span> close <span class="sc">/</span> <span class="fu">lag</span>(adjusted) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><em>If you are curious:</em> Look for an old news article describing the significance of that event and tell me what happened</p>
+<p><strong>Problem 2:</strong> When working with stock price fluctuations or other processes where a quantity increases or decreases according to some multiplicative process like a growth rate (for example population growth) it is often better to work with the <code>log</code> of the growth rate rather than the growth rate itself. This allows standard summary statistics such as the mean to have a useful interpretation (otherwise you would have to use the geometric mean). Furthermore, the <code>log</code> transform is often useful to use on variables that are strictly positive, such as population growth rates or daily stock returns. To see why, consider a hypothetical stock which had a return of 0.5 (50% loss) on one day and 1.8 on the next day (80% gain). The mean of these two returns would be 1.075, or 7.5% per day. However, at the end of the two day period the stock would have lost 10% of its value (0.5*1.8 = 0.9). If we had computed the mean of the log(return) instead, we would have found that (log(0.5)+log(1.8))/2 = log(0.9^(1/2)), or approximately -5.2% per day, matching the observed price change.</p>
+<ul>
+<li>Create a new variable called <code>log_return</code> which is the log of the return variable you calculated in the previous problem. Generate either a histogram or density plot of the distribution of <code>log_return</code> for the entire dataset. Then create a QQ-plot of <code>log_return</code> using <code>geom_qq()</code> and <code>geom_qq_line()</code>. What do you notice about the “tails” (right and left side/extreme edges) of the distribution from the QQ-plot? Are there visible signs of this in the density plot/histogram that you made?</li>
+</ul>
+<p>The tails of the graph show a long tail QQplot graph. There are upward curves and downward curves within plot, meaning there are outliers in the data with really low values and big values. The tails of the plot shows it is skewed to the left</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_return =</span> <span class="fu">log</span>(return <span class="sc">+</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> stocks, <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> log_return)) <span class="sc">+</span> <span class="fu">geom_density</span>(<span class="at">fill =</span> <span class="st">"orange"</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Logs Retunrs Density Graph"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 14 rows containing non-finite outside the scale range
+(`stat_density()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab4_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>( <span class="at">data =</span> stocks, <span class="fu">aes</span>(<span class="at">sample =</span> log_return)) <span class="sc">+</span> <span class="fu">geom_qq</span>() <span class="sc">+</span> <span class="fu">geom_qq_line</span>() <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"QQ-Plot of Log Returns"</span>, <span class="at">y =</span> <span class="st">"Sample Quantiles"</span>, <span class="at">x =</span> <span class="st">"Theoretical Quantiles"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 14 rows containing non-finite outside the scale range
+(`stat_qq()`).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 14 rows containing non-finite outside the scale range
+(`stat_qq_line()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab4_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Problem 3:</strong> Volume measures how many shares were traded of a given stock over a set time period, and high volume days often associate with important events or market dynamics.</p>
+<ul>
+<li>Make a scatter plot of <code>volume</code> versus <code>log_return</code>, faceted by symbol to account for the fact that different stocks have different trading volumes. Do you see an association between volume and log_return in these scatter plots?</li>
+</ul>
+<p>When there is increase in the log_return there is aloso increase in the volume of shares that are traded.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> stocks, <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> volume, <span class="at">y =</span> log_return)) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"violet"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Volume vs Log return scatter plot"</span>) <span class="sc">+</span> <span class="fu">facet_wrap</span>(<span class="sc">~</span>symbol, <span class="at">scale =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 14 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab4_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li>Use the <code>cor</code> function to compute the pearson’s correlation coefficient between <code>volume</code> and <code>log_return</code> for each symbol. Why do you think the correlations are close to 0?</li>
+</ul>
+<p>Hint: use it with summarize and don’t forget that cor is a base R function so you will either need to filter NA values for volume and log_return or appropriately choose the <code>use</code> flag in the argument- see ?cor for more info.</p>
+<p>The correlation is close 0 because there is non - linear relationship between both variables. There may be some hugh trading volumes with both low and high log_return values.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>corr_between_vol_and_log_return <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(volume) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(log_return)) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">correlate =</span> <span class="fu">cor</span>(volume, log_return)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(corr_between_vol_and_log_return)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 14 × 2
+   symbol correlate
+   &lt;chr&gt;      &lt;dbl&gt;
+ 1 AAPL     -0.566 
+ 2 ADBE     -0.103 
+ 3 AMZN      0.0828
+ 4 CRM       0.0206
+ 5 CSCO     -0.561 
+ 6 GOOGL     0.0276
+ 7 IBM      -0.336 
+ 8 INTC     -0.479 
+ 9 META      0.0276
+10 MSFT     -0.601 
+11 NFLX     -0.0548
+12 NVDA     -0.203 
+13 ORCL     -0.598 
+14 TSLA      0.0619</code></pre>
+</div>
+</div>
+<ul>
+<li>Next compute the correlation in the same manner but this time transform log_return using the absolute value function. Recreate the faceted scatter-plots from the first part of the problem but with the absolute-value transformed log_return. How have the correlations changed from the previous summary?</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>absolutea_corr_between_vol_and_log_return <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(volume) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(log_return)) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_return_absolute =</span> <span class="fu">abs</span>(log_return)) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">absolute_correlation =</span> <span class="fu">cor</span>(volume, log_return_absolute)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(absolutea_corr_between_vol_and_log_return)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 14 × 2
+   symbol absolute_correlation
+   &lt;chr&gt;                 &lt;dbl&gt;
+ 1 AAPL                  0.571
+ 2 ADBE                  0.561
+ 3 AMZN                  0.579
+ 4 CRM                   0.542
+ 5 CSCO                  0.562
+ 6 GOOGL                 0.360
+ 7 IBM                   0.337
+ 8 INTC                  0.485
+ 9 META                  0.544
+10 MSFT                  0.603
+11 NFLX                  0.519
+12 NVDA                  0.339
+13 ORCL                  0.606
+14 TSLA                  0.462</code></pre>
+</div>
+</div>
+<p><strong>Problem 4:</strong> For this problem we will implement a more complicated mathematical transformation of data by calculating a measure of liquidity for each stock.</p>
+<p>Liquidity is defined loosely as the ability for a given asset to be bought or sold without a large impact on price. Liquid assets can be bought and sold quickly and easily, whereas illiquid assets have large increases or decreases in their price when someone tries to buy or sell them in large quantities. Liquidity is considered an important property of a well functioning financial market, and declines in liquidity have been blamed for worsening or triggering stock market crashes.</p>
+<p>Many methods have been invented to measure liquidity, but for this problem we will focus on a method called “Kyle’s <span class="math inline">\(\lambda\)</span>”. Kyle’s <span class="math inline">\(\lambda\)</span> estimates liquidity by using a linear regression between the absolute value daily return of a stock and the logarithm of the dollar volume of that stock. The time periods used to estimate this regression can vary, but here we will use daily returns and a one month time period (defined as 20 trading days). You will learn a lot about linear models in DATA 606 and other classes, but to be complete, <span class="math inline">\(\lambda\)</span> is a coefficient in the following linear model: <span class="math display">\[
+|R_t-1| = c + \lambda \log((\mathrm{Volume})_t (\mathrm{close})_t) + \epsilon_t
+\]</span> where the coefficients <span class="math inline">\(c\)</span> and <span class="math inline">\(\lambda\)</span> will be calculated to minimize the error <span class="math inline">\(\epsilon_t\)</span> over the past 20 trading days.</p>
+<p><span class="math inline">\(\lambda\)</span> stands for the amount that the stock price will move in units of basis points for a given <span class="math inline">\(\log\)</span> dollar volume of trade. A small <span class="math inline">\(\lambda\)</span> indicates high liquidity, and a high <span class="math inline">\(\lambda\)</span> indicates low liquidity.</p>
+<p><span class="math inline">\(\lambda\)</span> can be be calculated using rolling averages on the time series data with the <code>TTR</code> package, specifically the function <code>runMean</code> which when used within a <code>dplyr</code> pipeline will calculate the mean over the past <span class="math inline">\(n\)</span> data points. For example, the command:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(TTR)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>stocks <span class="sc">|&gt;</span> <span class="fu">group_by</span>(symbol) <span class="sc">|&gt;</span>  <span class="fu">mutate</span>(<span class="at">log_return_20d =</span> <span class="fu">runMean</span>(log_return,<span class="at">n=</span><span class="dv">20</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>adds a new variable which is equal to the mean of the log_return over the past 20 days. The mathematical formula for <span class="math inline">\(\lambda\)</span> is: <span class="math display">\[
+\lambda = \frac{\mathrm{mean}(R_a\log( p_c V ))
+- \mathrm{mean}\left(R_a\right) \mathrm{mean}\left(\log\left(p_c V\right) \right) }
+{\mathrm{mean}\left(\log\left( p_c V \right)^2\right)
+-\mathrm{mean}\left(\log(p_c V)\right)^2 }
+\]</span> where to make the formula easier to read we have defined <span class="math inline">\(R_a = |\mathrm{return} -1|\)</span>, <span class="math inline">\(p_c = \mathrm{close}\)</span> and <span class="math inline">\(V = \mathrm{volume}\)</span>, and the averages have been taken over the past 20 days of data.</p>
+<ul>
+<li>Add a new variable called <code>kyle</code> to the data frame by implementing the above formula for <span class="math inline">\(\lambda\)</span>. Make sure to read and implement the formula very carefully, and to use the <code>runMean</code> function to calculate the rolling average correctly.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">vollume_log_dollar =</span> <span class="fu">log</span>(volume<span class="sc">*</span>close),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">absolute_return_1 =</span> <span class="fu">abs</span>(log_return <span class="sc">-</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>( <span class="at">kyle_top =</span> <span class="fu">runMean</span>(absolute_return_1 <span class="sc">*</span> vollume_log_dollar, <span class="at">n =</span> <span class="dv">20</span>) <span class="sc">-</span> <span class="fu">runMean</span>(absolute_return_1, <span class="at">n =</span> <span class="dv">20</span>) <span class="sc">*</span> <span class="fu">runMean</span>(vollume_log_dollar, <span class="at">n =</span> <span class="dv">20</span>),</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="at">kyle_bottom =</span> <span class="fu">runMean</span>(vollume_log_dollar<span class="sc">^</span><span class="dv">2</span> , <span class="at">n =</span> <span class="dv">20</span>) <span class="sc">-</span> <span class="fu">runMean</span>(vollume_log_dollar, <span class="at">n =</span> <span class="dv">20</span>)<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="at">kyle =</span> kyle_top<span class="sc">/</span>kyle_bottom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Plot Kyle’s lambda for each stock over time (I would use a faceted scatterplot). What do you notice about how this measure of liquidity behaves (remember liquidity is high when <span class="math inline">\(\lambda\)</span> is small)?</li>
+</ul>
+<p>When the lamba become high it shows that liquidity is very low and when lambda is low it shows liquidity is very high. A low volume is more volatile so the lambda will be low and there liquidity will increase.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>( <span class="at">data =</span> stocks, <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> kyle)) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.1</span>) <span class="sc">+</span> <span class="fu">facet_wrap</span>(<span class="sc">~</span>symbol, <span class="at">scale =</span> <span class="st">"free"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 280 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab4_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li>Next add a new variable to the dataframe called <code>extreme</code> which is true when the log_return for a given stock is <em>either</em> greater than 95% of other values of the log_return <em>or</em> less than 95% of all values of log_return. Use the <code>percent_rank</code> <code>dplyr</code> window function along with logical operators to create this variable. Then for each stock calculate the mean value of Kyle’s lambda for the days when the log_return had extreme values and for when it didn’t (as identified by the <code>extreme</code> variable). What do your calculations and figures indicate about liquidity during extreme events?</li>
+</ul>
+<p>During extreme events like covid and 2009 financial crisis, there will be a decrease in liquidity as there is decrease in volume trading. During financial crisis investor are more careful, so they will move their investment to a different source which will increase the liquidity, meaning a decrease in lambda.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>stocks <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>( <span class="at">extreme =</span> (<span class="fu">percent_rank</span>(log_return) <span class="sc">&lt;</span> <span class="fl">0.5</span> <span class="sc">|</span> <span class="fu">percent_rank</span>(log_return) <span class="sc">&gt;</span> <span class="fl">0.95</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(stocks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 17
+# Groups:   symbol [1]
+  symbol date        open  high   low close    volume adjusted return return2
+  &lt;chr&gt;  &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
+1 AAPL   2000-01-03 0.936 1.00  0.908 0.999 535796800    0.844 NA     NA     
+2 AAPL   2000-01-04 0.967 0.988 0.903 0.915 512377600    0.773 -0.227  0.0843
+3 AAPL   2000-01-05 0.926 0.987 0.920 0.929 778321600    0.784 -0.143  0.201 
+4 AAPL   2000-01-06 0.948 0.955 0.848 0.848 767972800    0.716 -0.229  0.0817
+5 AAPL   2000-01-07 0.862 0.902 0.853 0.888 460734400    0.750 -0.116  0.240 
+6 AAPL   2000-01-10 0.911 0.913 0.846 0.873 505064000    0.737 -0.170  0.163 
+# ℹ 7 more variables: log_return &lt;dbl&gt;, vollume_log_dollar &lt;dbl&gt;,
+#   absolute_return_1 &lt;dbl&gt;, kyle_top &lt;dbl&gt;, kyle_bottom &lt;dbl&gt;, kyle &lt;dbl&gt;,
+#   extreme &lt;lgl&gt;</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>liquid_extreme <span class="ot">&lt;-</span> stocks <span class="sc">%&gt;%</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(symbol) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">kyle_mean =</span> <span class="fu">mean</span>(kyle, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
